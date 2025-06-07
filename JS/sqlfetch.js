@@ -189,11 +189,10 @@ export async function fetchCollab() {
 
 
 
-
-
 export async function fetchTeam() {
     try {
         const { data, error } = await supabase.from("team").select("*");
+        if (error) throw error;
 
         const categories = {
             1: document.getElementById("bsms"),
@@ -206,18 +205,24 @@ export async function fetchTeam() {
             if (category) category.innerHTML = "";
         });
 
+        const hasMembers = { 1: false, 2: false, 3: false, 4: false };
+
         data.forEach((team) => {
             const groupId = parseInt(team.group, 10);
-            if (!categories[groupId]) {
+            const container = categories[groupId];
+
+            if (!container) {
                 console.warn(`Unknown team group: ${groupId}`);
                 return;
             }
+
+            hasMembers[groupId] = true;
 
             const teamMember = document.createElement("div");
             teamMember.classList.add("team-member");
 
             const img = document.createElement("img");
-            img.src = team.image_link || "default-image.jpg"; 
+            img.src = team.image_link || "default-image.jpg";
             img.alt = team.name;
 
             const teamText = document.createElement("div");
@@ -234,16 +239,30 @@ export async function fetchTeam() {
             teamMember.appendChild(img);
             teamMember.appendChild(teamText);
 
-            categories[groupId].appendChild(teamMember);
+            container.appendChild(teamMember);
+        });
+
+        Object.entries(hasMembers).forEach(([groupId, hasData]) => {
+            if (!hasData) {
+                const container = categories[groupId];
+                if (container) {
+                    const prevSection = container.previousElementSibling;
+                    if (
+                        prevSection &&
+                        prevSection.tagName === "SECTION" &&
+                        prevSection.querySelector("h2")
+                    ) {
+                        prevSection.remove();
+                    }
+                    container.remove(); 
+                }
+            }
         });
 
     } catch (error) {
         console.error("Error:", error);
     }
 }
-
-
-
 
 
 
