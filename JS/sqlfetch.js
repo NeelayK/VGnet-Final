@@ -5,43 +5,187 @@ const supabaseUrl = "https://prfkhjuujnheztwhwmcd.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InByZmtoanV1am5oZXp0d2h3bWNkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE4MDk2NjIsImV4cCI6MjA1NzM4NTY2Mn0.j92nEtB5mUORV5VlCpLsTbJNinSykjnpaX0R1cnZQXc";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-export async function fetchPublications() {
-    try {
-        const { data, error } = await supabase.from("publications").select("*");
 
-        const infoSection = document.querySelector('.info-section');
-        const canvas = document.createElement('canvas');
-        canvas.id = 'missionCanvas';
-        infoSection.appendChild(canvas);
 
-        const infoContainer = document.querySelector('.publications');
-        infoContainer.innerHTML = '';
+let publicationsData = {
+  1: [], // Journal Papers
+  2: [], // Conference Papers
+  3: [], // Patents
+};
 
-        data.forEach((publication) => {
-            const infoBox = document.createElement('div');
-            infoBox.classList.add('info-box');
+const pageSize = 10;
+const currentPage = {
+  1: 0,
+  2: 0,
+  3: 0,
+};
 
-            const authors = document.createElement('h4');
-            authors.textContent = publication.authors;
 
-            const title = document.createElement('h2');
-            title.textContent = publication.paperName;
-
-            const date = document.createElement('p');
-            date.textContent = publication.date;
-
-            infoBox.appendChild(authors);
-            infoBox.appendChild(title);
-            infoBox.appendChild(date);
-            infoContainer.appendChild(infoBox);
-        });
-
-        canvasLoad(100, 150, 1.2,'missionCanvas','200,155,230');
-    } catch (error) {
-        console.error("Error loading publications:", error);
-    }
+function getSectionMap() {
+  return {
+    1: document.querySelector('#JP .info-container'),
+    2: document.querySelector('#CP .info-container'),
+    3: document.querySelector('#PP .info-container'),
+  };
 }
 
+
+export function renderPage(type) {
+  const sectionMap = getSectionMap();
+  const container = sectionMap[type];
+
+  if (!container) {
+    console.error(`Container for type ${type} not found`);
+    return;
+  }
+
+  container.innerHTML = '';
+
+  const sortedData = publicationsData[type].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  const start = currentPage[type] * pageSize;
+  const end = start + pageSize;
+  const pageData = sortedData.slice(start, end);
+
+  pageData.forEach(publication => {
+    const infoBox = document.createElement('div');
+    infoBox.classList.add('info-box');
+
+    const title = document.createElement('h4');
+    title.textContent = publication.title;
+
+    const authors = document.createElement('p');
+    authors.textContent = `Authors: ${publication.authors}`;
+
+    const dateObj = new Date(publication.date);
+    const formattedDate = dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+
+    const date = document.createElement('h4');
+    date.textContent = `${formattedDate}`;
+
+    infoBox.appendChild(title);
+    infoBox.appendChild(authors);
+    infoBox.appendChild(date);
+
+    container.appendChild(infoBox);
+  });
+}
+
+export async function fetchPublications() {
+  try {
+    const { data, error } = await supabase.from("publication").select("*");
+    if (error) throw error;
+
+    publicationsData = { 1: [], 2: [], 3: [] };
+    data.forEach(pub => {
+      if (publicationsData[pub.type]) {
+        publicationsData[pub.type].push(pub);
+      }
+    });
+
+    currentPage[1] = 0;
+    currentPage[2] = 0;
+    currentPage[3] = 0;
+
+    [1, 2, 3].forEach(type => renderPage(type));
+
+
+  } catch (error) {
+    console.error("Error loading publications:", error);
+  }
+
+}
+
+export function setupPaginationButtons() {
+  const nextButtons = document.querySelectorAll('.next-btn');
+  const prevButtons = document.querySelectorAll('.prev-btn');
+
+  nextButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const type = Number(btn.dataset.type);
+      const maxPage = Math.floor(publicationsData[type].length / pageSize);
+      if (currentPage[type] < maxPage) {
+        currentPage[type]++;
+        renderPage(type);
+      }
+    });
+  });
+
+  prevButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const type = Number(btn.dataset.type);
+      if (currentPage[type] > 0) {
+        currentPage[type]--;
+        renderPage(type);
+      }
+    });
+  });
+}
+
+
+export async function renderInfoSection() {
+  const recentNewsContainer = document.getElementById("recentNews");
+  recentNewsContainer.innerHTML = "<p>Loading...</p>";
+
+  try {
+    const [pubRes, newsRes, projRes] = await Promise.all([
+      supabase.from("publication").select("*"),
+      supabase.from("news").select("*"),
+      supabase.from("projects").select("*").eq("completed", true),
+    ]);
+
+    if (pubRes.error || newsRes.error || projRes.error) {
+      throw new Error("Error fetching data from Supabase.");
+    }
+
+const latestPub = pubRes.data
+  .filter(pub => pub.type === 3)
+  .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+
+    const latestNews = newsRes.data.sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+    const latestCompletedProject = projRes.data.sort((a, b) => b.id - a.id)[0];
+
+    recentNewsContainer.innerHTML = "";
+
+    const createNewsTab = (heading, text) => {
+      const tab = document.createElement("div");
+      tab.className = "newsTab";
+
+      const h3 = document.createElement("h3");
+      h3.className = "lab-description";
+      h3.textContent = heading;
+
+      const h4 = document.createElement("h4");
+      h4.textContent = text;
+
+      const hr = document.createElement("hr");
+
+      tab.appendChild(h3);
+      tab.appendChild(h4);
+      tab.appendChild(hr);
+
+      return tab;
+    };
+
+    if (latestPub) {
+      recentNewsContainer.appendChild(createNewsTab("Latest Patent", latestPub.title));
+    }
+
+    if (latestNews) {
+      recentNewsContainer.appendChild(createNewsTab("Project News", latestNews.title));
+    }
+
+    if (latestCompletedProject) {
+      recentNewsContainer.appendChild(createNewsTab("Just Completed Project", latestCompletedProject.title));
+    }
+
+  } catch (err) {
+    console.error("Failed to render info section:", err);
+    recentNewsContainer.innerHTML = "<p>Error loading content.</p>";
+  }
+}
 
 
 export async function fetchProjects() {
@@ -111,8 +255,8 @@ export async function fetchProjects() {
             }
         });
 
-        canvasLoad(100, 200, 1.1, 'missionCanvasOngoing','155,155,255');
-        canvasLoad(100, 100, 1.1, 'missionCanvasCompleted','255,155,155');
+        canvasLoad(100, 300, 1.8, 'missionCanvasOngoing','255,155,155');
+        canvasLoad(100, 100, 1.1, 'missionCanvasCompleted','155,155,255');
 
     } catch (error) {
         console.error("Error fetching projects:", error);

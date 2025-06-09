@@ -5,6 +5,7 @@ export function canvasLoad(numParticlesParameter=80, maxDistanceParameter =100, 
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
 
+
     let particles = [];
     const numParticles = numParticlesParameter;
     const maxDistance = maxDistanceParameter;
