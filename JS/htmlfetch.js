@@ -1,6 +1,6 @@
 // htmlfetch.js
 import { canvasLoad } from './script.js';
-import { fetchCollab, fetchGallery, fetchProjects, fetchPublications, fetchTeam, renderInfoSection, setupPaginationButtons } from './sqlfetch.js';
+import { fetchCollab, fetchGallery, fetchProjects, fetchPublications, fetchSponsors, fetchTeam, renderInfoSection, setupPaginationButtons } from './sqlfetch.js';
 
 export function loadComponent(id, file) {
     fetch(file)
@@ -26,7 +26,10 @@ export function loadPage(page) {
                 fetchPublications();
                 setupPaginationButtons();
             }
-            if(document.querySelector(".info-section"))renderInfoSection();
+            if(document.querySelector(".info-section")){
+                renderInfoSection();
+                fetchSponsors();
+            }
             if (document.querySelector(".projects")) fetchProjects();
             if (document.querySelector(".collabsHead")) fetchCollab();
             if (document.querySelector(".team-category")) {

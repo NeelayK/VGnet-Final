@@ -22,13 +22,24 @@ body.dark-mode {
     --info: rgba(41, 41, 41, 0.285);
 }
 
+.sponsorImg{
+    height: 100px;
+    width: auto;
+    margin: 2rem;
+}
 
 html {
     scroll-behavior: smooth;
 }
 
+body {
+    transition: background-color 0.5s ease-in-out, color 0.5s ease-in-out;
+}
 
-
+.dark-mode {
+    background-color: #121212;
+    color: #ffffff;
+}
 
 
 
@@ -95,7 +106,7 @@ nav ul li {
 
 .logo-container img {
     cursor: pointer;
-    scale: 110%;
+    scale: 120%;
 }
 
 
@@ -1032,5 +1043,103 @@ align-self: center;
         flex-direction: column;
         text-align: center;
     }
+
+}
+
+.prev-btn.disabled, .next-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-info{
+    display: inline-block;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.Social {
+    position: fixed;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+}
+
+.Social ul {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 0;
+    margin: 0;
+}
+
+.Social li {
+    list-style: none;
+    width: 50px;
+    height: 50px;
+    position: relative;
+}
+
+.Social a {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    
+    text-decoration: none;
+    height: 100%;
+    background: rgba(128, 128, 128, 0.214);
+    color: rgba(0, 0, 0, 0.47);
+    font-size: 24px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.Social a:hover {
+    color: white;
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.Social li:nth-child(1) a:hover { background: #47b881; }
+.Social li:nth-child(2) a:hover { background: #4078c0; }
+.Social li:nth-child(3) a:hover { background: #e1306c; }
+.Social li:nth-child(4) a:hover { background: #1da1f2; }
+.Social li:nth-child(5) a:hover { background: #ea4335; }
+
+
+
+@media (max-width: 768px) {
+
+.Social ul {
+    display: flex;
+    flex-direction: row;
+}
+
+.Social {
+  position: fixed;
+  top: calc(100vh - 40px);
+  right:calc(50% - 150px);
+
+}
+
+.Social ul {
+  justify-content: center; /* Centers items horizontally */
+}
 
 }
