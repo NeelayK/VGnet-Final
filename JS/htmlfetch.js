@@ -41,3 +41,5 @@ export function loadPage(page) {
 
 window.loadComponent = loadComponent;
 window.loadPage = loadPage;
+
+

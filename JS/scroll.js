@@ -17,3 +17,19 @@ function handleScroll() {
 window.addEventListener('scroll', handleScroll);
 document.addEventListener('DOMContentLoaded', handleScroll);
 
+
+
+
+function toggleDarkMode() {
+    const toggleBtn = document.getElementById("toggle-btn");
+    if (toggleBtn) {
+        toggleBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            document.body.classList.toggle("dark-mode");
+            const isDark = document.body.classList.contains("dark-mode");
+            localStorage.setItem("theme", isDark ? "dark" : "light");
+
+            loadPage("home");
+        });
+    }
+};
